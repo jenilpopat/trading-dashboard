@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+
+# The cache file is generated at runtime; keep the folder, ignore its contents.
+data/*.json
