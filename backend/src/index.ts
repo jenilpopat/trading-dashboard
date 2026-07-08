@@ -15,7 +15,7 @@ async function main(): Promise<void> {
   const app = express();
 
   // Allow the frontend dev server to call us from the browser.
-  app.use(cors({ origin: config.corsOrigin.split(',') }));
+ app.use(cors({ credentials: true, origin: true }));
   app.use(express.json());
 
   // Small request logger for visibility during development.
