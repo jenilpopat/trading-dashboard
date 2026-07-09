@@ -86,10 +86,17 @@ export default function App() {
 
   return (
     <div className="app">
-      <h1>Real-Time Trading Dashboard</h1>
-      <p className="muted">
-        Cached trade analytics from the backend + live prices over WebSocket.
-      </p>
+      <header className="topbar">
+        <div className="brand">
+          <div className="logo">📈</div>
+          <div>
+            <h1>Real-Time Trading Dashboard</h1>
+            <p className="subtitle">
+              Cached trade analytics + live prices over WebSocket
+            </p>
+          </div>
+        </div>
+      </header>
 
       {loading && <p className="muted">Loading dashboard…</p>}
       {error && (

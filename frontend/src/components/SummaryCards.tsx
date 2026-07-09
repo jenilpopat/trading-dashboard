@@ -23,14 +23,14 @@ export function SummaryCards({
       <h2>Overall Performance</h2>
 
       <div className="cards">
-        <div className="card">
+        <div className={`card ${summary.grossPnl >= 0 ? 'pos-accent' : 'neg-accent'}`}>
           <div className="label">Gross P&amp;L</div>
           <div className={`value ${pnlClass(summary.grossPnl)}`}>
             {formatMoney(summary.grossPnl)}
           </div>
         </div>
 
-        <div className="card">
+        <div className={`card ${summary.netPnl >= 0 ? 'pos-accent' : 'neg-accent'}`}>
           <div className="label">Net P&amp;L</div>
           <div className={`value ${pnlClass(summary.netPnl)}`}>
             {formatMoney(summary.netPnl)}
@@ -60,10 +60,11 @@ export function SummaryCards({
         <span className={`status-pill status-${summary.dataStatus}`}>
           {summary.dataStatus}
         </span>
-        <button onClick={onRefresh} disabled={refreshing}>
-          {refreshing ? 'Refreshing…' : 'Refresh'}
-        </button>
         {refreshMessage && <span className="muted">{refreshMessage}</span>}
+        <span className="toolbar-spacer" />
+        <button onClick={onRefresh} disabled={refreshing}>
+          {refreshing ? 'Refreshing…' : '↻ Refresh'}
+        </button>
       </div>
     </section>
   );

@@ -9,9 +9,9 @@ interface Props {
 type SortDir = 'asc' | 'desc';
 
 /**
- * "Performance by instrument" table.
- * Sorting by Net P&L is done client-side (the backend returns rows unsorted).
- * Click the Net P&L header to toggle ascending / descending.
+ * "Performance by instrument" section, rendered as a responsive grid of cards
+ * (one per instrument) instead of a table. Sorting by Net P&L is done
+ * client-side; the toolbar button toggles ascending / descending.
  */
 export function InstrumentTable({ rows }: Props) {
   const [dir, setDir] = useState<SortDir>('desc');
@@ -28,37 +28,51 @@ export function InstrumentTable({ rows }: Props) {
   return (
     <section>
       <h2>Performance by Instrument</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th className="num">Trades</th>
-            <th className="num">Total Quantity</th>
-            <th className="num sortable" onClick={toggle}>
-              Net P&amp;L {dir === 'asc' ? '▲' : '▼'}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((row) => (
-            <tr key={row.symbol}>
-              <td>{row.symbol}</td>
-              <td className="num">{formatNumber(row.tradeCount)}</td>
-              <td className="num">{formatNumber(row.totalQuantity)}</td>
-              <td className={`num ${pnlClass(row.netPnl)}`}>
-                {formatMoney(row.netPnl)}
-              </td>
-            </tr>
-          ))}
-          {sorted.length === 0 && (
-            <tr>
-              <td colSpan={4} className="muted">
-                No instrument data available.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+
+      {sorted.length === 0 ? (
+        <p className="muted">No instrument data available.</p>
+      ) : (
+        <>
+          <div className="inst-toolbar">
+            <button className="ghost-btn" onClick={toggle}>
+              Sort by Net P&amp;L {dir === 'asc' ? '↑ Low first' : '↓ High first'}
+            </button>
+          </div>
+
+          <div className="inst-grid">
+            {sorted.map((row) => {
+              const up = row.netPnl >= 0;
+              return (
+                <div
+                  key={row.symbol}
+                  className={`inst-card ${up ? 'pos-accent' : 'neg-accent'}`}
+                >
+                  <div className="inst-card-head">
+                    <span className="inst-symbol">{row.symbol}</span>
+                    <span className={`inst-badge ${pnlClass(row.netPnl)}`}>
+                      {up ? '▲' : '▼'} {formatMoney(row.netPnl)}
+                    </span>
+                  </div>
+                  <div className="inst-meta">
+                    <div className="inst-stat">
+                      <span className="inst-stat-label">Trades</span>
+                      <span className="inst-stat-value">
+                        {formatNumber(row.tradeCount)}
+                      </span>
+                    </div>
+                    <div className="inst-stat">
+                      <span className="inst-stat-label">Total Qty</span>
+                      <span className="inst-stat-value">
+                        {formatNumber(row.totalQuantity)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </section>
   );
 }
