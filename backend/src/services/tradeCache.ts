@@ -42,26 +42,42 @@ class TradeCache {
 
   /**
    * Load a persisted cache from disk on startup (if it exists).
-   * This means a server restart doesn't force a slow upstream fetch.
+   *
+   * Tries two sources in order:
+   *   1. The runtime cache file, written by the last successful refresh.
+   *   2. A committed seed snapshot — the fallback on a fresh deploy where the
+   *      runtime file doesn't exist yet (ephemeral filesystem). This guarantees
+   *      the dashboard has data on the very first request, with no upstream wait.
+   *
+   * Either way we get instant, usable data; the daily/manual refresh replaces it.
    */
   async loadFromDisk(): Promise<void> {
-    try {
-      const raw = await fs.readFile(config.cacheFilePath, 'utf-8');
-      const parsed = JSON.parse(raw) as CachePayload;
-      this.cache = parsed;
-      // Data loaded from disk is "stale" until we confirm a fresh fetch, but
-      // it's fully usable. We mark it not-stale here because it was valid when
-      // written; the daily scheduler / manual refresh will update it.
-      this.isStale = false;
-      console.log(
-        `[cache] Loaded ${parsed.tradeCount} trades from disk (fetched ${new Date(
-          parsed.fetchedAt,
-        ).toISOString()})`,
-      );
-    } catch {
-      // No cache file yet — that's fine, we'll fetch on demand.
-      console.log('[cache] No persisted cache found on disk.');
+    const sources: Array<{ path: string; label: string }> = [
+      { path: config.cacheFilePath, label: 'runtime cache' },
+      { path: config.seedFilePath, label: 'committed seed' },
+    ];
+
+    for (const { path: filePath, label } of sources) {
+      try {
+        const raw = await fs.readFile(filePath, 'utf-8');
+        const parsed = JSON.parse(raw) as CachePayload;
+        this.cache = parsed;
+        // Data loaded from disk is fully usable and was valid when written, so
+        // we treat it as fresh; the scheduler / manual refresh updates it later.
+        this.isStale = false;
+        console.log(
+          `[cache] Loaded ${parsed.tradeCount} trades from ${label} (fetched ${new Date(
+            parsed.fetchedAt,
+          ).toISOString()})`,
+        );
+        return;
+      } catch {
+        // This source is missing/unreadable — fall through to the next one.
+      }
     }
+
+    // Neither the runtime cache nor the seed existed — we'll fetch on demand.
+    console.log('[cache] No persisted cache or seed found on disk.');
   }
 
   /** Persist the current cache to disk (best-effort; failure is non-fatal). */

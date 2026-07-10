@@ -4,3 +4,5 @@ dist/
 
 # The cache file is generated at runtime; keep the folder, ignore its contents.
 data/*.json
+# ...except the committed seed snapshot used for instant first-load on deploy.
+!data/trades-seed.json

@@ -23,6 +23,11 @@ export const config = {
   // Where the on-disk cache lives so it survives a server restart.
   cacheFilePath: path.resolve(__dirname, '..', 'data', 'trades-cache.json'),
 
+  // A committed snapshot loaded at boot when no runtime cache exists yet (e.g.
+  // a fresh deploy on an ephemeral filesystem). Guarantees instant first-load
+  // data; it's superseded by the first successful refresh.
+  seedFilePath: path.resolve(__dirname, '..', 'data', 'trades-seed.json'),
+
   // --- Retry / timeout tuning for the flaky /api/trades endpoint ---
   // The endpoint is slow, so give it a generous timeout.
   upstreamTimeoutMs: 30_000,

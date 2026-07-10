@@ -20,7 +20,11 @@ const wrap =
 /** GET /api/summary — overall performance, from pre-computed aggregates. */
 router.get(
   '/summary',
-  wrap((_req, res) => {
+  wrap(async (_req, res) => {
+    // Block the very first request(s) after a cold start until the warm-up
+    // fetch has data, so we never serve an empty dashboard. Once loaded this
+    // returns instantly. Concurrent callers share the single in-flight fetch.
+    await tradeCache.ensureLoaded();
     res.json(tradeCache.getSummary());
   }),
 );
@@ -28,7 +32,8 @@ router.get(
 /** GET /api/instruments-summary — one row per symbol (frontend does sorting). */
 router.get(
   '/instruments-summary',
-  wrap((_req, res) => {
+  wrap(async (_req, res) => {
+    await tradeCache.ensureLoaded();
     const rows = tradeCache.getCache()?.aggregates.instrumentsSummary ?? [];
     res.json(rows);
   }),
@@ -37,7 +42,8 @@ router.get(
 /** GET /api/daily-pnl — net P&L per day, sorted ascending by date. */
 router.get(
   '/daily-pnl',
-  wrap((_req, res) => {
+  wrap(async (_req, res) => {
+    await tradeCache.ensureLoaded();
     const series = tradeCache.getCache()?.aggregates.dailyPnl ?? [];
     res.json(series);
   }),
